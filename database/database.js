@@ -11,7 +11,8 @@ process.env.DB_USER, //Usuário reservado para conexão
 process.env.DB_PASSWORD, //Senha reservada para acesso
 {
     host:process.env.DB_HOST, //endereço(banco local)
-    dialect:'mysql'//o banco utilizado
+    dialect:'mysql',//o banco utilizado
+   
 }
 );
 

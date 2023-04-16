@@ -5,6 +5,7 @@
 const { DataTypes } = require("sequelize");
 const { connection } = require("./database");
 
+
 const Cliente = connection.define("cliente", {
   // Configurar a coluna 'nome'
   nome: {
@@ -24,5 +25,15 @@ const Cliente = connection.define("cliente", {
     allowNull: false,
   },
 });
+
+//Associação 1:1 (One-to-one)
+const Endereco = require("./endereco"); //importa endereço
+
+//o cliente tem  endereço
+//Endereço ganha uma chave estrangeira (nome do model + id)
+//chave estrangeira = clienteId
+Cliente.hasOne(Endereco); 
+Endereco.belongsTo(Cliente);//endereço pertence a um cliente
+
 
 module.exports = Cliente;
