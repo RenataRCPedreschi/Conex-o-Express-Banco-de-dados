@@ -22,7 +22,7 @@ authenticate(connection); //efetivar a conexão
 const Cliente = require("./database/cliente");
 const Endereco = require("./database/endereco");
 
-//Definição das rotas
+//Definição das rotas - paradigma REST
 
 //listar clientes
 app.get("/clientes", async (req, res) => {
@@ -33,8 +33,10 @@ app.get("/clientes", async (req, res) => {
 
 //buscar cliente específico
 app.get("/clientes/:id", async (req, res) => {
-  const cliente = await Cliente.findOne({ where: { id: req.params.id }, include:[Endereco],
-   });
+  const cliente = await Cliente.findOne({
+    where: { id: req.params.id },
+    include: [Endereco],
+  });
   if (cliente) {
     res.json(cliente);
   } else {
@@ -56,6 +58,52 @@ app.post("/clientes", async (req, res) => {
     res.status(201).json(novo); //201 - cliente criado
   } catch (err) {
     res.status(500).json({ message: "Um erro aconteceu" });
+  }
+});
+
+// PUT (/clientes) => Atualizar cliente existente
+app.put("/clientes/:id", async (req, res) => {
+  const { nome, email, telefone, endereco } = req.body;
+  const { id } = req.params;
+
+  try {
+    //findOne busca somente 1 resgitro
+    const cliente = await Cliente.findOne({ where: { id } });
+    if (cliente) {
+      if (endereco) {
+        //quando o clienteId de Endereco for = id do cliente fornecido em /clientes/:id
+        Endereco.update(endereco, { where: { clienteId: id } });
+      }
+      //depois de verificar se tem endereço verifica se há atualização nas demais informações
+      //quando o clienteId de Cliente for = id do cliente fornecido em /clientes/:id
+      await cliente.update({ nome, email, telefone });
+      //resposta e qual cliente editado
+      res.status(200).json({ message: "Cliente editado!", cliente });
+    } else {
+      //se não encontrar o cliente
+      res.status(404).json({ message: "Usuário não encontrado!" });
+    }
+  } catch (err) {
+    //não consegue consultar o bd por algum motivo
+    res.status(500).json({ message: "Aconteceu um erro." });
+  }
+});
+
+//deletar cliente
+app.delete("/clientes/:id", async (req, res) => {
+  const { id } = req.params;
+  const cliente = await Cliente.findOne({ where: { id } });
+  try {
+    if (cliente) {
+      //destroy = deleta cliente
+      await cliente.destroy();
+      res.status(200).json({message: "Cliente removido."});
+    } else {
+      res.status(404).json({ message: "Cliente não encontrado." });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Um erro aconteceu." });
   }
 });
 
