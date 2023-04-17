@@ -21,6 +21,7 @@ authenticate(connection); //efetivar a conexão
 //Configurar o model da aplicação
 const Cliente = require("./database/cliente");
 const Endereco = require("./database/endereco");
+const Pet = require("./database/pet");
 
 //Definição das rotas - paradigma REST
 
@@ -97,12 +98,52 @@ app.delete("/clientes/:id", async (req, res) => {
     if (cliente) {
       //destroy = deleta cliente
       await cliente.destroy();
-      res.status(200).json({message: "Cliente removido."});
+      res.status(200).json({ message: "Cliente removido." });
     } else {
       res.status(404).json({ message: "Cliente não encontrado." });
     }
   } catch (err) {
     console.error(err);
+    res.status(500).json({ message: "Um erro aconteceu." });
+  }
+});
+
+//Mapeamento de rotas pet
+
+//listar pets
+app.get("/pets", async(req, res) =>{
+  const listaPets = await Pet.findAll();
+  res.json(listaPets)
+})
+
+//Lista um pet
+app.get("/pets/:id", async(req, res) =>{
+  const {id} = req.params;
+
+  const pet = await Pet.findByPk(id);
+  if(pet){
+res.json(pet);
+  }else{
+res.status(404).json({message: "Pet não encontrado."})
+  }
+})
+
+//Adicionar Pet
+app.post("/pets", async (req, res) => {
+  const { nome, tipo, porte, dataNasc, clienteId } = req.body;
+
+  try {
+    const cliente = await Cliente.findByPk(clienteId);
+    if(cliente) {
+      const pet = await Pet.create({nome, tipo, porte, dataNasc, clienteId});
+      res.status(201).json(pet);
+    }
+    else {
+      res.status(404).json({ message: "Cliente não encontrado." });
+    }
+  }
+  catch(err) {
+    console.log(err);
     res.status(500).json({ message: "Um erro aconteceu." });
   }
 });
