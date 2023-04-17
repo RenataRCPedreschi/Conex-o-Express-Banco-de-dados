@@ -23,16 +23,39 @@ const Cliente = require("./database/cliente");
 const Endereco = require("./database/endereco");
 
 //Definição das rotas
+
+//listar clientes
+app.get("/clientes", async (req, res) => {
+  //SELECT * FROM clientes
+  const listaClientes = await Cliente.findAll();
+  res.json(listaClientes);
+});
+
+//buscar cliente específico
+app.get("/clientes/:id", async (req, res) => {
+  const cliente = await Cliente.findOne({ where: { id: req.params.id }, include:[Endereco],
+   });
+  if (cliente) {
+    res.json(cliente);
+  } else {
+    res.status(404).json({ message: "Usuário não encontrado." });
+  }
+});
+
+//adicionar clientes
 app.post("/clientes", async (req, res) => {
   const { nome, email, telefone, endereco } = req.body;
   //Passo para adicionar:
   //Chamar Model.create
   try {
-	//Dentro de 'novo' estará o objeto criado
-    const novo = await Cliente.create({nome, email, telefone, endereco}, {include:[Endereco]});//Permite inserir cliente e endereço num comando
-	res.status(201).json(novo);//201 - cliente criado
+    //Dentro de 'novo' estará o objeto criado
+    const novo = await Cliente.create(
+      { nome, email, telefone, endereco },
+      { include: [Endereco] }
+    ); //Permite inserir cliente e endereço num comando
+    res.status(201).json(novo); //201 - cliente criado
   } catch (err) {
-	res.status(500).json({message: "Um erro aconteceu"})
+    res.status(500).json({ message: "Um erro aconteceu" });
   }
 });
 
